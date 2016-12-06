@@ -1,6 +1,9 @@
+
 import React, { Component } from 'react';
 import ContactList from './ContactList';
 import SearchBar from './SearchBar';
+import NewContactForm from './NewContactForm';
+import axios from 'axios';
 
 class App extends Component {
   constructor() {
@@ -8,47 +11,42 @@ class App extends Component {
 
     this.state = {
       searchText: '',
-      contacts: [
-        {
-          _id: 'dale',
-          name: 'Dale Cooper',
-          occupation: 'FBI Agent',
-          avatar: 'https://upload.wikimedia.org/wikipedia/en/5/50/Agentdalecooper.jpg'
-        },
-        {
-          _id: 'spike',
-          name: 'Spike Spiegel',
-          occupation: 'Bounty Hunter',
-          avatar: 'http://vignette4.wikia.nocookie.net/deadliestfiction/images/d/de/Spike_Spiegel_by_aleztron.jpg/revision/latest?cb=20130920231337'
-        },
-        {
-          _id: 'wirt',
-          name: 'Wirt',
-          occupation: 'adventurer',
-          avatar: 'http://66.media.tumblr.com/5ea59634756e3d7c162da2ef80655a39/tumblr_nvasf1WvQ61ufbniio1_400.jpg'
-        },
-        {
-          _id: 'michael',
-          name: 'Michael Myers',
-          occupation: 'Loving little brother',
-          avatar: 'http://vignette2.wikia.nocookie.net/villains/images/e/e3/MMH.jpg/revision/latest?cb=20150810215746'
-        },
-        {
-          _id: 'dana',
-          name: 'Dana Scully',
-          occupation: 'FBI Agent',
-          avatar: 'https://pbs.twimg.com/profile_images/718881904834056192/WnMTb__R.jpg'
-        }
-      ]
+      contacts: []
     };
   }
 
-  handleSearchBarChange(event) {
+  componentDidMount() {
+    axios.get('http://localhost:3001/api/contacts')
+      .then(resp => {
+        this.setState({
+          searchText: this.state.searchText,
+          contacts: resp.data
+        })
+      })
+      .catch(err => console.log(`Error! ${err}`));
+  }
+
+  handleChange(event) {
     this.setState({
       contacts: this.state.contacts,
       searchText: event.target.value
     })
   }
+
+  handleDeleteContact(id) {
+    axios.delete(`http://localhost:3001/api/contacts/${id}`)
+        .then(resp => {
+            const contacts = this.state.contacts.filter(contact => {
+              return contact._id !== id;
+            });
+            this.setState({
+              ...this.state,
+              contacts: contacts
+            })
+        })
+    .catch(err => console.log(`Error! ${err}`));
+  }
+
 
   getFilteredContacts() {
     // Remove any white space, and convert the searchText to lowercase
@@ -60,7 +58,7 @@ class App extends Component {
       return contacts;
     }
 
-    // Filter will return a new array of contacts, the contact will
+    // Filter will return a new array of contacts, the contacts will
     // be included in the array if the function returns true,
     // and excluded if the function returns false
     return contacts.filter(contact => {
@@ -68,14 +66,25 @@ class App extends Component {
     });
   }
 
+  handleAddContact(attributes) {
+    axios.post('http://localhost:3001/api/contacts', attributes)
+      .then(resp => {
+        this.setState(prev => {
+          return {
+            ...prev,
+            contacts: [...prev.contacts, resp.data]
+          };
+        });
+      })
+      .catch(err => console.log(err));
+  }
+
   render() {
     return (
       <div className="App">
-        <SearchBar
-           value={this.state.searchText}
-           onChange={this.handleSearchBarChange.bind(this)}
-        />
-        <ContactList contacts={this.getFilteredContacts()} />
+        <NewContactForm onAdd={this.handleAddContact.bind(this)}/>
+        <SearchBar value={this.state.searchText} onChange={this.handleChange.bind(this)}/>
+        <ContactList onDelete={this.handleDeleteContact.bind(this)} contacts={this.getFilteredContacts()} />
       </div>
     );
   }

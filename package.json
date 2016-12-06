@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "nodemon": "^1.11.0",
     "react-scripts": "0.7.0"
   },
   "dependencies": {
+    "axios": "^0.15.2",
+    "body-parser": "^1.15.2",
+    "method-override": "^2.3.7",
     "react": "^15.3.2",
     "react-dom": "^15.3.2"
   },

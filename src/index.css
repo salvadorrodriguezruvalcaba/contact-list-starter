@@ -129,3 +129,9 @@ body {
   background: gray;
   color: white;
 }
+
+.btn-filled {
+    height: 30px;
+    background: #91a05c;
+    color: white;
+}
